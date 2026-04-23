@@ -3,6 +3,7 @@ import { useGetAllUsersQuery } from "./userAPI";
 
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import Grid from "@mui/material/Grid";
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
@@ -18,6 +19,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
 
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -29,22 +31,116 @@ import UsersList from "./UsersList";
 
 const drawerWidth = 260;
 
+type StatCardProps = {
+    title: string;
+    value: number | string;
+    subtitle: string;
+    icon: React.ReactNode;
+    iconBg: string;
+    loading?: boolean;
+};
+
+const StatCard = ({
+    title,
+    value,
+    subtitle,
+    icon,
+    iconBg,
+    loading = false,
+}: StatCardProps) => {
+    return (
+        <Card
+            elevation={0}
+            sx={{
+                height: "100%",
+                borderRadius: 4,
+                border: "1px solid",
+                borderColor: "divider",
+                background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,1) 100%)",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 6,
+                },
+            }}
+        >
+            <CardContent sx={{ p: 2.5 }}>
+                <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                    spacing={2}
+                >
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 1, fontWeight: 500 }}
+                        >
+                            {title}
+                        </Typography>
+
+                        {loading ? (
+                            <Skeleton variant="text" width={90} height={42} />
+                        ) : (
+                            <Typography
+                                variant="h4"
+                                fontWeight={800}
+                                sx={{ lineHeight: 1.1, mb: 1 }}
+                            >
+                                {value}
+                            </Typography>
+                        )}
+
+                        <Typography variant="caption" color="text.secondary">
+                            {subtitle}
+                        </Typography>
+                    </Box>
+
+                    <Avatar
+                        sx={{
+                            bgcolor: iconBg,
+                            width: 48,
+                            height: 48,
+                            boxShadow: 2,
+                        }}
+                    >
+                        {icon}
+                    </Avatar>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+};
+
 const Dashboard = () => {
-    const { data } = useGetAllUsersQuery();
+    const { data, isLoading } = useGetAllUsersQuery();
     const users = data?.users ?? [];
 
     const stats = useMemo(() => {
+        const totalUsers = users.length;
         const companies = new Set(users.map((user) => user.company.name)).size;
         const countries = new Set(users.map((user) => user.address.country)).size;
-        const averageAge = users.length
-            ? Math.round(users.reduce((acc, user) => acc + user.age, 0) / users.length)
+        const averageAge = totalUsers
+            ? Math.round(users.reduce((acc, user) => acc + user.age, 0) / totalUsers)
             : 0;
 
+        const maleCount = users.filter((user) => user.gender === "male").length;
+        const femaleCount = users.filter((user) => user.gender === "female").length;
+        const topGender =
+            maleCount === femaleCount
+                ? "Поровну"
+                : maleCount > femaleCount
+                    ? "Больше мужчин"
+                    : "Больше женщин";
+
         return {
-            totalUsers: users.length,
+            totalUsers,
             companies,
             countries,
             averageAge,
+            topGender,
         };
     }, [users]);
 
@@ -67,6 +163,9 @@ const Dashboard = () => {
             >
                 <Toolbar sx={{ justifyContent: "space-between" }}>
                     <Box>
+                        <Typography variant="h6" fontWeight={700}>
+                            Users Dashboard
+                        </Typography>
                         <Typography variant="body2" color="text.secondary">
                             Интерактивная панель пользователей
                         </Typography>
@@ -112,7 +211,13 @@ const Dashboard = () => {
                 <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
 
                 <List sx={{ px: 1.5, py: 2 }}>
-                    <ListItemButton sx={{ borderRadius: 3, mb: 1, bgcolor: "rgba(255,255,255,0.08)" }}>
+                    <ListItemButton
+                        sx={{
+                            borderRadius: 3,
+                            mb: 1,
+                            bgcolor: "rgba(255,255,255,0.08)",
+                        }}
+                    >
                         <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
                             <DashboardOutlinedIcon />
                         </ListItemIcon>
@@ -127,6 +232,10 @@ const Dashboard = () => {
                     flexGrow: 1,
                     p: 3,
                     ml: `${drawerWidth}px`,
+                    height: "100vh",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
                 }}
             >
                 <Toolbar />
@@ -151,80 +260,51 @@ const Dashboard = () => {
                         </Typography>
                     </Paper>
 
-                    <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                        <Card sx={{ flex: 1, borderRadius: 4 }}>
-                            <CardContent>
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                    <Box>
-                                        <Typography color="text.secondary" variant="body2">
-                                            Всего пользователей
-                                        </Typography>
-                                        <Typography variant="h4" fontWeight={700}>
-                                            {stats.totalUsers}
-                                        </Typography>
-                                    </Box>
-                                    <Avatar sx={{ bgcolor: "primary.light" }}>
-                                        <GroupOutlinedIcon />
-                                    </Avatar>
-                                </Stack>
-                            </CardContent>
-                        </Card>
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
+                            <StatCard
+                                title="Всего пользователей"
+                                value={stats.totalUsers}
+                                subtitle="Общее количество записей"
+                                icon={<GroupOutlinedIcon />}
+                                iconBg="primary.light"
+                                loading={isLoading}
+                            />
+                        </Grid>
 
-                        <Card sx={{ flex: 1, borderRadius: 4 }}>
-                            <CardContent>
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                    <Box>
-                                        <Typography color="text.secondary" variant="body2">
-                                            Компаний
-                                        </Typography>
-                                        <Typography variant="h4" fontWeight={700}>
-                                            {stats.companies}
-                                        </Typography>
-                                    </Box>
-                                    <Avatar sx={{ bgcolor: "success.light" }}>
-                                        <ApartmentOutlinedIcon />
-                                    </Avatar>
-                                </Stack>
-                            </CardContent>
-                        </Card>
+                        <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
+                            <StatCard
+                                title="Компаний"
+                                value={stats.companies}
+                                subtitle="Уникальные места работы"
+                                icon={<ApartmentOutlinedIcon />}
+                                iconBg="success.light"
+                                loading={isLoading}
+                            />
+                        </Grid>
 
-                        <Card sx={{ flex: 1, borderRadius: 4 }}>
-                            <CardContent>
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                    <Box>
-                                        <Typography color="text.secondary" variant="body2">
-                                            Стран
-                                        </Typography>
-                                        <Typography variant="h4" fontWeight={700}>
-                                            {stats.countries}
-                                        </Typography>
-                                    </Box>
-                                    <Avatar sx={{ bgcolor: "warning.light" }}>
-                                        <PublicOutlinedIcon />
-                                    </Avatar>
-                                </Stack>
-                            </CardContent>
-                        </Card>
+                        <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
+                            <StatCard
+                                title="Стран"
+                                value={stats.countries}
+                                subtitle="География пользователей"
+                                icon={<PublicOutlinedIcon />}
+                                iconBg="warning.light"
+                                loading={isLoading}
+                            />
+                        </Grid>
 
-                        <Card sx={{ flex: 1, borderRadius: 4 }}>
-                            <CardContent>
-                                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                    <Box>
-                                        <Typography color="text.secondary" variant="body2">
-                                            Средний возраст
-                                        </Typography>
-                                        <Typography variant="h4" fontWeight={700}>
-                                            {stats.averageAge}
-                                        </Typography>
-                                    </Box>
-                                    <Avatar sx={{ bgcolor: "secondary.light" }}>
-                                        <TrendingUpOutlinedIcon />
-                                    </Avatar>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    </Stack>
-
+                        <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
+                            <StatCard
+                                title="Средний возраст"
+                                value={stats.averageAge}
+                                subtitle={stats.topGender}
+                                icon={<TrendingUpOutlinedIcon />}
+                                iconBg="secondary.light"
+                                loading={isLoading}
+                            />
+                        </Grid>
+                    </Grid>
                     <UsersList />
                 </Stack>
             </Box>

@@ -80,7 +80,15 @@ const UsersList = () => {
     }
 
     return (
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
+        <Stack
+            direction={{ xs: "column", lg: "row" }}
+            spacing={3}
+            sx={{
+                height: { xs: "auto", lg: "calc(100vh - 320px)" },
+                minHeight: { lg: 520 },
+                overflow: "hidden",
+            }}
+        >
             <Paper
                 elevation={0}
                 sx={{
@@ -90,9 +98,13 @@ const UsersList = () => {
                     border: "1px solid",
                     borderColor: "divider",
                     bgcolor: "background.paper",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                    overflow: "hidden",
                 }}
             >
-                <Stack spacing={2}>
+                <Stack spacing={2} sx={{ minHeight: 0, height: "100%" }}>
                     <TextField
                         fullWidth
                         placeholder="Поиск по имени, email, городу, компании..."
@@ -112,79 +124,88 @@ const UsersList = () => {
                         Найдено: {filteredUsers.length}
                     </Typography>
 
-                    <List sx={{ p: 0 }}>
-                        {filteredUsers.map((user, index) => (
-                            <Box key={user.id}>
-                                <ListItem disablePadding>
-                                    <ListItemButton
-                                        selected={selectedUser?.id === user.id}
-                                        onClick={() => setSelectedUserId(user.id)}
-                                        sx={{
-                                            borderRadius: 3,
-                                            alignItems: "flex-start",
-                                            py: 1.5,
-                                        }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar
-                                                alt={user.username}
-                                                src={user.image}
-                                                sx={{ width: 52, height: 52 }}
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: 0,
+                            overflowY: "auto",
+                            pr: 1,
+                        }}
+                    >
+                        <List sx={{ p: 0 }}>
+                            {filteredUsers.map((user, index) => (
+                                <Box key={user.id}>
+                                    <ListItem disablePadding>
+                                        <ListItemButton
+                                            selected={selectedUser?.id === user.id}
+                                            onClick={() => setSelectedUserId(user.id)}
+                                            sx={{
+                                                borderRadius: 3,
+                                                alignItems: "flex-start",
+                                                py: 1.5,
+                                            }}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    alt={user.username}
+                                                    src={user.image}
+                                                    sx={{ width: 52, height: 52 }}
+                                                />
+                                            </ListItemAvatar>
+
+                                            <ListItemText
+                                                primary={
+                                                    <Stack
+                                                        direction="row"
+                                                        spacing={1}
+                                                        alignItems="center"
+                                                        flexWrap="wrap"
+                                                    >
+                                                        <Typography variant="subtitle1" fontWeight={600}>
+                                                            {user.firstName} {user.lastName}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={user.company.department}
+                                                            size="small"
+                                                            variant="outlined"
+                                                        />
+                                                    </Stack>
+                                                }
+                                                secondary={
+                                                    <Stack spacing={0.75} sx={{ mt: 0.75 }}>
+                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                            <EmailOutlinedIcon sx={{ fontSize: 16 }} />
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {user.email}
+                                                            </Typography>
+                                                        </Stack>
+
+                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                            <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {user.address.city}, {user.address.state}, {user.address.country}
+                                                            </Typography>
+                                                        </Stack>
+
+                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                            <BusinessOutlinedIcon sx={{ fontSize: 16 }} />
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {user.company.name}
+                                                            </Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                }
                                             />
-                                        </ListItemAvatar>
+                                        </ListItemButton>
+                                    </ListItem>
 
-                                        <ListItemText
-                                            primary={
-                                                <Stack
-                                                    direction="row"
-                                                    spacing={1}
-                                                    alignItems="center"
-                                                    flexWrap="wrap"
-                                                >
-                                                    <Typography variant="subtitle1" fontWeight={600}>
-                                                        {user.firstName} {user.lastName}
-                                                    </Typography>
-                                                    <Chip
-                                                        label={user.company.department}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
-                                                </Stack>
-                                            }
-                                            secondary={
-                                                <Stack spacing={0.75} sx={{ mt: 0.75 }}>
-                                                    <Stack direction="row" spacing={1} alignItems="center">
-                                                        <EmailOutlinedIcon sx={{ fontSize: 16 }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {user.email}
-                                                        </Typography>
-                                                    </Stack>
-
-                                                    <Stack direction="row" spacing={1} alignItems="center">
-                                                        <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {user.address.city}, {user.address.state}, {user.address.country}
-                                                        </Typography>
-                                                    </Stack>
-
-                                                    <Stack direction="row" spacing={1} alignItems="center">
-                                                        <BusinessOutlinedIcon sx={{ fontSize: 16 }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {user.company.name}
-                                                        </Typography>
-                                                    </Stack>
-                                                </Stack>
-                                            }
-                                        />
-                                    </ListItemButton>
-                                </ListItem>
-
-                                {index !== filteredUsers.length - 1 && (
-                                    <Divider variant="inset" component="li" sx={{ my: 1 }} />
-                                )}
-                            </Box>
-                        ))}
-                    </List>
+                                    {index !== filteredUsers.length - 1 && (
+                                        <Divider variant="inset" component="li" sx={{ my: 1 }} />
+                                    )}
+                                </Box>
+                            ))}
+                        </List>
+                    </Box>
                 </Stack>
             </Paper>
 
@@ -196,78 +217,90 @@ const UsersList = () => {
                     borderRadius: 4,
                     border: "1px solid",
                     borderColor: "divider",
-                    minHeight: 520,
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                    overflow: "hidden",
                 }}
             >
-                {selectedUser ? (
-                    <Stack spacing={2.5}>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                            <Avatar
-                                alt={selectedUser.username}
-                                src={selectedUser.image}
-                                sx={{ width: 72, height: 72 }}
-                            />
+                <Box
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        overflowY: "auto",
+                        pr: 1,
+                    }}
+                >
+                    {selectedUser ? (
+                        <Stack spacing={2.5}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <Avatar
+                                    alt={selectedUser.username}
+                                    src={selectedUser.image}
+                                    sx={{ width: 72, height: 72 }}
+                                />
+                                <Box>
+                                    <Typography variant="h6" fontWeight={700}>
+                                        {selectedUser.firstName} {selectedUser.lastName}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        @{selectedUser.username}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {selectedUser.age} лет • {selectedUser.gender}
+                                    </Typography>
+                                </Box>
+                            </Stack>
+
+                            <Divider />
+
                             <Box>
-                                <Typography variant="h6" fontWeight={700}>
-                                    {selectedUser.firstName} {selectedUser.lastName}
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Контакты
+                                </Typography>
+                                <Typography variant="body1">{selectedUser.email}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {selectedUser.phone}
+                                </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Локация
+                                </Typography>
+                                <Typography variant="body1">
+                                    {selectedUser.address.city}, {selectedUser.address.state},{" "}
+                                    {selectedUser.address.country}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    @{selectedUser.username}
+                                    {selectedUser.address.address}, {selectedUser.address.postalCode}
                                 </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Компания
+                                </Typography>
+                                <Typography variant="body1">{selectedUser.company.name}</Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    {selectedUser.age} лет • {selectedUser.gender}
+                                    {selectedUser.company.title} • {selectedUser.company.department}
+                                </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Банк
+                                </Typography>
+                                <Typography variant="body1">{selectedUser.bank.cardType}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {selectedUser.bank.currency} • {selectedUser.bank.iban}
                                 </Typography>
                             </Box>
                         </Stack>
-
-                        <Divider />
-
-                        <Box>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Контакты
-                            </Typography>
-                            <Typography variant="body1">{selectedUser.email}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {selectedUser.phone}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Локация
-                            </Typography>
-                            <Typography variant="body1">
-                                {selectedUser.address.city}, {selectedUser.address.state},{" "}
-                                {selectedUser.address.country}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {selectedUser.address.address}, {selectedUser.address.postalCode}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Компания
-                            </Typography>
-                            <Typography variant="body1">{selectedUser.company.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {selectedUser.company.title} • {selectedUser.company.department}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                Банк
-                            </Typography>
-                            <Typography variant="body1">{selectedUser.bank.cardType}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {selectedUser.bank.currency} • {selectedUser.bank.iban}
-                            </Typography>
-                        </Box>
-                    </Stack>
-                ) : (
-                    <Typography color="text.secondary">Пользователь не выбран</Typography>
-                )}
+                    ) : (
+                        <Typography color="text.secondary">Пользователь не выбран</Typography>
+                    )}
+                </Box>
             </Paper>
         </Stack>
     );
