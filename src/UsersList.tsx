@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useGetAllUsersQuery } from "./userAPI";
 
 import Box from "@mui/material/Box";
@@ -11,44 +11,31 @@ import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
-
-import SearchIcon from "@mui/icons-material/Search";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import { useDashboardContext } from "./DashboardContext";
 
 const UsersList = () => {
-    const { data, error, isLoading } = useGetAllUsersQuery();
-    const users = data?.users ?? [];
+    const {users,findUserByAnyField } = useDashboardContext();
+    const { error, isLoading } = useGetAllUsersQuery();
 
     const [search, setSearch] = useState("");
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
     const filteredUsers = useMemo(() => {
-        const value = search.trim().toLowerCase();
-
-        if (!value) return users;
-
-        return users.filter((user) => {
-            const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-            return (
-                fullName.includes(value) ||
-                user.email.toLowerCase().includes(value) ||
-                user.username.toLowerCase().includes(value) ||
-                user.address.city.toLowerCase().includes(value) ||
-                user.company.name.toLowerCase().includes(value)
-            );
-        });
+        const value = search.toLowerCase();
+        return findUserByAnyField(value);
     }, [users, search]);
 
-    const selectedUser =
-        filteredUsers.find((u) => u.id === selectedUserId) ?? filteredUsers[0] ?? null;
+    const selectedUser = useMemo(() => {
+        return users.find((user) => user.id === selectedUserId) || null;
+    }, [users, selectedUserId]);
 
     if (isLoading) {
         return (
@@ -63,7 +50,7 @@ const UsersList = () => {
                     borderRadius: 4,
                 }}
             >
-                <Stack alignItems="center" spacing={2}>
+                <Stack sx={{ alignItems:"center" }} spacing={2}>
                     <CircularProgress />
                     <Typography color="text.secondary">Загрузка пользователей...</Typography>
                 </Stack>
@@ -74,7 +61,7 @@ const UsersList = () => {
     if (error) {
         return (
             <Alert severity="error" sx={{ borderRadius: 3 }}>
-                Не удалось загрузить пользователей.
+                Ошибка при загрузке данных. Пожалуйста, попробуйте позже.
             </Alert>
         );
     }
@@ -107,21 +94,15 @@ const UsersList = () => {
                 <Stack spacing={2} sx={{ minHeight: 0, height: "100%" }}>
                     <TextField
                         fullWidth
-                        placeholder="Поиск по имени, email, городу, компании..."
+                        placeholder="Имя, email, город, компания..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         size="small"
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon fontSize="small" />
-                                </InputAdornment>
-                            ),
-                        }}
+
                     />
 
                     <Typography variant="body2" color="text.secondary">
-                        Найдено: {filteredUsers.length}
+                        Найдено: {filteredUsers?.length || 0}
                     </Typography>
 
                     <Box
@@ -133,7 +114,7 @@ const UsersList = () => {
                         }}
                     >
                         <List sx={{ p: 0 }}>
-                            {filteredUsers.map((user, index) => (
+                            {filteredUsers?.map((user, index) => (
                                 <Box key={user.id}>
                                     <ListItem disablePadding>
                                         <ListItemButton
@@ -158,10 +139,12 @@ const UsersList = () => {
                                                     <Stack
                                                         direction="row"
                                                         spacing={1}
-                                                        alignItems="center"
-                                                        flexWrap="wrap"
+                                                        sx={{
+                                                            alignItems: "center",
+                                                            flexWrap: "wrap"
+                                                        }}
                                                     >
-                                                        <Typography variant="subtitle1" fontWeight={600}>
+                                                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                                             {user.firstName} {user.lastName}
                                                         </Typography>
                                                         <Chip
@@ -173,21 +156,21 @@ const UsersList = () => {
                                                 }
                                                 secondary={
                                                     <Stack spacing={0.75} sx={{ mt: 0.75 }}>
-                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                             <EmailOutlinedIcon sx={{ fontSize: 16 }} />
                                                             <Typography variant="body2" color="text.secondary">
                                                                 {user.email}
                                                             </Typography>
                                                         </Stack>
 
-                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                             <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
                                                             <Typography variant="body2" color="text.secondary">
                                                                 {user.address.city}, {user.address.state}, {user.address.country}
                                                             </Typography>
                                                         </Stack>
 
-                                                        <Stack direction="row" spacing={1} alignItems="center">
+                                                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                                             <BusinessOutlinedIcon sx={{ fontSize: 16 }} />
                                                             <Typography variant="body2" color="text.secondary">
                                                                 {user.company.name}
@@ -233,21 +216,21 @@ const UsersList = () => {
                 >
                     {selectedUser ? (
                         <Stack spacing={2.5}>
-                            <Stack direction="row" spacing={2} alignItems="center">
+                            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                                 <Avatar
                                     alt={selectedUser.username}
                                     src={selectedUser.image}
                                     sx={{ width: 72, height: 72 }}
                                 />
                                 <Box>
-                                    <Typography variant="h6" fontWeight={700}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
                                         {selectedUser.firstName} {selectedUser.lastName}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         @{selectedUser.username}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        {selectedUser.age} лет • {selectedUser.gender}
+                                        {selectedUser.age} лет {selectedUser.gender === "male" ? "Мужчина" : "Женщина"}
                                     </Typography>
                                 </Box>
                             </Stack>
@@ -283,7 +266,7 @@ const UsersList = () => {
                                 </Typography>
                                 <Typography variant="body1">{selectedUser.company.name}</Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    {selectedUser.company.title} • {selectedUser.company.department}
+                                    {selectedUser.company.title} {selectedUser.company.department}
                                 </Typography>
                             </Box>
 
@@ -293,7 +276,7 @@ const UsersList = () => {
                                 </Typography>
                                 <Typography variant="body1">{selectedUser.bank.cardType}</Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    {selectedUser.bank.currency} • {selectedUser.bank.iban}
+                                    {selectedUser.bank.currency}  {selectedUser.bank.iban}
                                 </Typography>
                             </Box>
                         </Stack>

@@ -4,11 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { DashboardProvider } from './DashboardContext.tsx';
+import CssBaseline from '@mui/material/CssBaseline';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <DashboardProvider>
+        <App />
+        <CssBaseline />
+      </DashboardProvider>
     </Provider>
   </StrictMode>,
 )
